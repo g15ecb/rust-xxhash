@@ -115,7 +115,7 @@ mod c {
         test(BUFSIZE,          0,      0x1F1AA412);
         test(BUFSIZE,          PRIME,  0x498EC8E2);
 
-        unsafe { libc::free(buf as *c_void); }
+        unsafe { libc::free(buf as *mut c_void); }
     }
 
     #[bench]
@@ -126,7 +126,7 @@ mod c {
         bench.iter(|| unsafe { XXH32(buf as *c_void, BUFSIZE, 0); });
 
         bench.bytes = BUFSIZE as u64;
-        unsafe { libc::free(buf as *c_void); }
+        unsafe { libc::free(buf as *mut c_void); }
     }
 }
 
@@ -175,6 +175,6 @@ mod rust {
 
         bench.bytes = BUFSIZE as u64;
 
-        unsafe { libc::free(buf as *libc::c_void); }
+        unsafe { libc::free(buf as *mut libc::c_void); }
     }
 }
