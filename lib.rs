@@ -4,7 +4,7 @@
 #[cfg(test)]
 extern mod extra;
 
-pub use xxhash::{xxh32};
+pub use xxhash::{XXHState,xxh32};
 
 #[cfg(target_endian = "big")]
 #[static_assert]

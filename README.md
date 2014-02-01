@@ -4,7 +4,7 @@ A Rust implementation of [xxHash](http://code.google.com/p/xxhash/).
 
     $ ./build.sh
 
-### Test
+### Test:
 
     $ build/rust-hash --test --bench
 
@@ -29,3 +29,15 @@ A Rust implementation of [xxHash](http://code.google.com/p/xxhash/).
     test xxhash::rust::bench_oneshot   ... bench:     68212 ns/iter (+/- 5735) = 3843 MB/s
 
     test result: ok. 4 passed; 0 failed; 0 ignored; 14 measured
+
+### Use:
+
+```rust
+let mut xxh: XXHState = XXHState::new(seed);
+for chunk in v.chunks(64) {
+    xxh.update(chunk);
+}
+
+let result = xxh.digest();
+assert_eq!(result, expected);
+```
