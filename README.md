@@ -31,7 +31,7 @@ let result = xxh.digest();
 assert_eq!(result, expected);
 ```
 
-### Benchmark (MB/s, x86_64):
+### Benchmark (MB/s, bigger is better, x86_64):
 
 Test    | SipHash | xxHash gcc | xxHash clang | xxHash Rust |
 ----|---:|----:|----:|----:|
