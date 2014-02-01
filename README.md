@@ -41,7 +41,7 @@ Test    | SipHash | xxHash gcc | xxHash clang | xxHash Rust |
 16-byte chunks | 389 |  788 | **1099** | 1034 |
 32-byte chunks | 448 | 1273 | 1638 | **1641** |
 64-byte chunks | 474 | 1868 | 2226 | **2303** |
-oneshot        |  79 | 3480 | **3894** | 3855 |
+oneshot        | 514 | 3480 | **3894** | 3855 |
 
 SipHash is the Rust implementation in `std::hash`.
 
