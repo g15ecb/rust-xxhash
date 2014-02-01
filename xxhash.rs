@@ -294,7 +294,7 @@ mod c {
     }
 
     #[bench]
-    fn bench(bench: &mut BenchHarness) {
+    fn bench_oneshot(bench: &mut BenchHarness) {
         let BUFSIZE: c_int = 256*1024;
         let buf: *mut c_void = unsafe { libc::malloc(BUFSIZE as size_t) };
 
@@ -327,19 +327,23 @@ mod c {
     fn bench_chunks_7(bench: &mut BenchHarness) {
         bench_chunks_base(bench, 7);
     }
-        #[bench]
+    #[bench]
     fn bench_chunks_8(bench: &mut BenchHarness) {
         bench_chunks_base(bench, 8);
     }
-        #[bench]
+    #[bench]
     fn bench_chunks_15(bench: &mut BenchHarness) {
         bench_chunks_base(bench, 15);
     }
-        #[bench]
+    #[bench]
+    fn bench_chunks_16(bench: &mut BenchHarness) {
+        bench_chunks_base(bench, 16);
+    }
+    #[bench]
     fn bench_chunks_32(bench: &mut BenchHarness) {
         bench_chunks_base(bench, 32);
     }
-        #[bench]
+    #[bench]
     fn bench_chunks_64(bench: &mut BenchHarness) {
         bench_chunks_base(bench, 64);
     }
@@ -437,7 +441,7 @@ mod rust {
     }
 
     #[bench]
-    fn bench(bench: &mut BenchHarness) {
+    fn bench_oneshot(bench: &mut BenchHarness) {
         bench_base( bench, |v| {
             xxh32(v, 0);
         });
@@ -456,6 +460,11 @@ mod rust {
     #[bench]
     fn bench_chunks_15(bench: &mut BenchHarness) {
         bench_chunks(bench, 15);
+    }
+
+    #[bench]
+    fn bench_chunks_16(bench: &mut BenchHarness) {
+        bench_chunks(bench, 16);
     }
 
     #[bench]
