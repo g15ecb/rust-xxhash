@@ -6,37 +6,36 @@ A Rust implementation of [xxHash](http://code.google.com/p/xxhash/).
 
 ### Test:
 
-    $ build/rust-hash --test --bench
+    # schedtool -a 0x1 -R -p 40 -e ./rust-hash --test --bench
 
     running 25 tests
-    test xxhash::c::test ... ok
     test xxhash::c::test_chunks ... ok
+    test xxhash::c::test ... ok
     test xxhash::rust::test ... ok
     test xxhash::rust::test_chunks ... ok
-    test siphash::bench_chunks_15      ... bench:    256395 ns/iter (+/- 5826) = 255 MB/s
-    test siphash::bench_chunks_16      ... bench:    166980 ns/iter (+/- 3279) = 392 MB/s
-    test siphash::bench_chunks_32      ... bench:    146360 ns/iter (+/- 694) = 447 MB/s
-    test siphash::bench_chunks_64      ... bench:    138619 ns/iter (+/- 263) = 472 MB/s
-    test siphash::bench_chunks_7       ... bench:    398572 ns/iter (+/- 31296) = 164 MB/s
-    test siphash::bench_chunks_8       ... bench:    206662 ns/iter (+/- 1137) = 317 MB/s
-    test siphash::bench_oneshot        ... bench:    827907 ns/iter (+/- 1658) = 79 MB/s
-    test xxhash::c::bench_chunks_15    ... bench:    588104 ns/iter (+/- 514) = 445 MB/s
-    test xxhash::c::bench_chunks_16    ... bench:    333169 ns/iter (+/- 535) = 786 MB/s
-    test xxhash::c::bench_chunks_32    ... bench:    205790 ns/iter (+/- 241) = 1273 MB/s
-    test xxhash::c::bench_chunks_64    ... bench:    140199 ns/iter (+/- 182) = 1869 MB/s
-    test xxhash::c::bench_chunks_7     ... bench:    946005 ns/iter (+/- 881) = 277 MB/s
-    test xxhash::c::bench_chunks_8     ... bench:    546597 ns/iter (+/- 698) = 479 MB/s
-    test xxhash::c::bench_oneshot      ... bench:     18802 ns/iter (+/- 24) = 3485 MB/s
-    test xxhash::rust::bench_chunks_15 ... bench:    145384 ns/iter (+/- 2055) = 450 MB/s
-    test xxhash::rust::bench_chunks_16 ... bench:     62816 ns/iter (+/- 248) = 1043 MB/s
-    test xxhash::rust::bench_chunks_32 ... bench:     39764 ns/iter (+/- 242) = 1648 MB/s
-    test xxhash::rust::bench_chunks_64 ... bench:     28215 ns/iter (+/- 809) = 2322 MB/s
-    test xxhash::rust::bench_chunks_7  ... bench:    216114 ns/iter (+/- 247) = 303 MB/s
-    test xxhash::rust::bench_chunks_8  ... bench:    136653 ns/iter (+/- 322) = 479 MB/s
-    test xxhash::rust::bench_oneshot   ... bench:     17013 ns/iter (+/- 74) = 3852 MB/s
+    test siphash::chunks_07      ... bench:    393825 ns/iter (+/- 20849) = 166 MB/s
+    test siphash::chunks_08      ... bench:    207668 ns/iter (+/- 467) = 315 MB/s
+    test siphash::chunks_15      ... bench:    251233 ns/iter (+/- 309) = 260 MB/s
+    test siphash::chunks_16      ... bench:    168221 ns/iter (+/- 261) = 389 MB/s
+    test siphash::chunks_32      ... bench:    146158 ns/iter (+/- 239) = 448 MB/s
+    test siphash::chunks_64      ... bench:    138239 ns/iter (+/- 214) = 474 MB/s
+    test siphash::oneshot        ... bench:    828240 ns/iter (+/- 3987) = 79 MB/s
+    test xxhash::c::chunks_07    ... bench:    946256 ns/iter (+/- 970) = 276 MB/s
+    test xxhash::c::chunks_08    ... bench:    546679 ns/iter (+/- 502) = 479 MB/s
+    test xxhash::c::chunks_15    ... bench:    588238 ns/iter (+/- 586) = 445 MB/s
+    test xxhash::c::chunks_16    ... bench:    358061 ns/iter (+/- 373) = 731 MB/s
+    test xxhash::c::chunks_32    ... bench:    205717 ns/iter (+/- 278) = 1274 MB/s
+    test xxhash::c::chunks_64    ... bench:    144501 ns/iter (+/- 158) = 1814 MB/s
+    test xxhash::c::oneshot      ... bench:     18825 ns/iter (+/- 18) = 3481 MB/s
+    test xxhash::rust::chunks_07 ... bench:    213686 ns/iter (+/- 1169) = 306 MB/s
+    test xxhash::rust::chunks_08 ... bench:    135593 ns/iter (+/- 245) = 483 MB/s
+    test xxhash::rust::chunks_15 ... bench:    146063 ns/iter (+/- 3296) = 448 MB/s
+    test xxhash::rust::chunks_16 ... bench:     63434 ns/iter (+/- 332) = 1033 MB/s
+    test xxhash::rust::chunks_32 ... bench:     40166 ns/iter (+/- 173) = 1631 MB/s
+    test xxhash::rust::chunks_64 ... bench:     29232 ns/iter (+/- 72) = 2241 MB/s
+    test xxhash::rust::oneshot   ... bench:     17006 ns/iter (+/- 14) = 3853 MB/s
 
     test result: ok. 4 passed; 0 failed; 0 ignored; 21 measured
-
 
 ### Use:
 

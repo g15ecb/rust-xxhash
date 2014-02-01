@@ -17,7 +17,7 @@ mod siphash {
     use extra::test::BenchHarness;
 
     #[inline(always)]
-    fn bench_base(bench: &mut BenchHarness, f: |v: &[u8]| ) {
+    fn bench_base(bench: &mut BenchHarness, f: |&[u8]| ) {
         use std::vec;
         use std::libc;
         let BUFSIZE = 64*1024;
@@ -45,7 +45,7 @@ mod siphash {
     }
 
     #[bench]
-    fn bench_oneshot(bench: &mut BenchHarness) {
+    fn oneshot(bench: &mut BenchHarness) {
         use std::hash::{Hash};
         bench_base( bench, |v| {
             v.hash();
@@ -53,32 +53,32 @@ mod siphash {
     }
 
     #[bench]
-    fn bench_chunks_7(bench: &mut BenchHarness) {
+    fn chunks_07(bench: &mut BenchHarness) {
         bench_chunks(bench, 7);
     }
 
     #[bench]
-    fn bench_chunks_8(bench: &mut BenchHarness) {
+    fn chunks_08(bench: &mut BenchHarness) {
         bench_chunks(bench, 8);
     }
 
     #[bench]
-    fn bench_chunks_15(bench: &mut BenchHarness) {
+    fn chunks_15(bench: &mut BenchHarness) {
         bench_chunks(bench, 15);
     }
 
     #[bench]
-    fn bench_chunks_16(bench: &mut BenchHarness) {
+    fn chunks_16(bench: &mut BenchHarness) {
         bench_chunks(bench, 16);
     }
 
     #[bench]
-    fn bench_chunks_32(bench: &mut BenchHarness) {
+    fn chunks_32(bench: &mut BenchHarness) {
         bench_chunks(bench, 32);
     }
 
     #[bench]
-    fn bench_chunks_64(bench: &mut BenchHarness) {
+    fn chunks_64(bench: &mut BenchHarness) {
         bench_chunks(bench, 64);
     }
 }
