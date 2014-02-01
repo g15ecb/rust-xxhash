@@ -20,7 +20,7 @@ mod siphash {
     fn bench_base(bench: &mut BenchHarness, f: |v: &[u8]| ) {
         use std::vec;
         use std::libc;
-        let BUFSIZE = 256*1024;
+        let BUFSIZE = 64*1024;
 
         let buf: *mut libc::c_void = unsafe { libc::malloc(BUFSIZE as libc::size_t) };
 

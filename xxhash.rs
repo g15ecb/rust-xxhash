@@ -295,7 +295,7 @@ mod c {
 
     #[bench]
     fn bench_oneshot(bench: &mut BenchHarness) {
-        let BUFSIZE: c_int = 256*1024;
+        let BUFSIZE: c_int = 64*1024;
         let buf: *mut c_void = unsafe { libc::malloc(BUFSIZE as size_t) };
 
         bench.iter(|| unsafe { XXH32(buf as *c_void, BUFSIZE, 0); });
@@ -418,7 +418,7 @@ mod rust {
     fn bench_base(bench: &mut BenchHarness, f: |v: &[u8]| ) {
         use std::vec;
         use std::libc;
-        let BUFSIZE = 256*1024;
+        let BUFSIZE = 64*1024;
 
         let buf: *mut libc::c_void = unsafe { libc::malloc(BUFSIZE as libc::size_t) };
 
