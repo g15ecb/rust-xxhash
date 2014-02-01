@@ -8,10 +8,14 @@ A Rust implementation of [xxHash](http://code.google.com/p/xxhash/).
 
     $ build/rust-hash --test --bench
 
-    running 4 tests
+    running 8 tests
     test xxhash::c::test ... ok
+    test xxhash::c::test_chunks ... ok
     test xxhash::rust::test ... ok
-    test xxhash::c::bench    ... bench:     75297 ns/iter (+/- 117) = 3481 MB/s
-    test xxhash::rust::bench ... bench:     68074 ns/iter (+/- 500) = 3850 MB/s
+    test xxhash::rust::test_chunks ... ok
+    test xxhash::c::bench           ... bench:     75283 ns/iter (+/- 82) = 3482 MB/s
+    test xxhash::c::bench_chunks    ... bench:    577563 ns/iter (+/- 757) = 453 MB/s
+    test xxhash::rust::bench        ... bench:     67884 ns/iter (+/- 95) = 3861 MB/s
+    test xxhash::rust::bench_chunks ... bench:    811369 ns/iter (+/- 2497) = 322 MB/s
 
-    test result: ok. 2 passed; 0 failed; 0 ignored; 2 measured
+    test result: ok. 4 passed; 0 failed; 0 ignored; 4 measured

@@ -5,4 +5,9 @@
 extern mod extra;
 
 pub use xxhash::{xxh32};
+
+#[cfg(target_endian = "big")]
+#[static_assert]
+static little_endian_only_sorry :bool=false;
+
 pub mod xxhash;
