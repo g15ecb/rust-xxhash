@@ -104,10 +104,7 @@ impl XXHState {
     }
 
     unsafe fn update_impl(&mut self, input: &[u8]) {
-        // #[allow(dead_assignment)];
-
         let mut len: uint = input.len();
-        if len == 0 { return; }
         let mut data: *u8 = input.repr().data;
 
         self.total_len += len as u64;
@@ -129,11 +126,21 @@ impl XXHState {
             intrinsics::copy_nonoverlapping_memory(dst, data, bump);
 
             let mut p: *u32 = cast::transmute(&self.memory);
-            self.v1 += (*p) * PRIME2; self.v1 = rotl32(self.v1, 13); self.v1 *= PRIME1; p = p.offset(1);
-            self.v2 += (*p) * PRIME2; self.v2 = rotl32(self.v2, 13); self.v2 *= PRIME1; p = p.offset(1);
-            self.v3 += (*p) * PRIME2; self.v3 = rotl32(self.v3, 13); self.v3 *= PRIME1; p = p.offset(1);
-            self.v4 += (*p) * PRIME2; self.v4 = rotl32(self.v4, 13); self.v4 *= PRIME1;
 
+            let mut v1: u32 = self.v1;
+            let mut v2: u32 = self.v2;
+            let mut v3: u32 = self.v3;
+            let mut v4: u32 = self.v4;
+
+            v1 += (*p) * PRIME2; v1 = rotl32(v1, 13); v1 *= PRIME1; p = p.offset(1);
+            v2 += (*p) * PRIME2; v2 = rotl32(v2, 13); v2 *= PRIME1; p = p.offset(1);
+            v3 += (*p) * PRIME2; v3 = rotl32(v3, 13); v3 *= PRIME1; p = p.offset(1);
+            v4 += (*p) * PRIME2; v4 = rotl32(v4, 13); v4 *= PRIME1;
+
+            self.v1 = v1;
+            self.v2 = v2;
+            self.v3 = v3;
+            self.v4 = v4;
 
             data = data.offset(bump as int);
             len -= bump;
@@ -145,12 +152,22 @@ impl XXHState {
         let chunks = len >> 4;
         let rem = len & 15;
 
+        let mut v1: u32 = self.v1;
+        let mut v2: u32 = self.v2;
+        let mut v3: u32 = self.v3;
+        let mut v4: u32 = self.v4;
+
         for _ in range(0, chunks) {
-            self.v1 += (*p) * PRIME2; self.v1 = rotl32(self.v1, 13); self.v1 *= PRIME1; p = p.offset(1);
-            self.v2 += (*p) * PRIME2; self.v2 = rotl32(self.v2, 13); self.v2 *= PRIME1; p = p.offset(1);
-            self.v3 += (*p) * PRIME2; self.v3 = rotl32(self.v3, 13); self.v3 *= PRIME1; p = p.offset(1);
-            self.v4 += (*p) * PRIME2; self.v4 = rotl32(self.v4, 13); self.v4 *= PRIME1; p = p.offset(1);
+            v1 += (*p) * PRIME2; v1 = rotl32(v1, 13); v1 *= PRIME1; p = p.offset(1);
+            v2 += (*p) * PRIME2; v2 = rotl32(v2, 13); v2 *= PRIME1; p = p.offset(1);
+            v3 += (*p) * PRIME2; v3 = rotl32(v3, 13); v3 *= PRIME1; p = p.offset(1);
+            v4 += (*p) * PRIME2; v4 = rotl32(v4, 13); v4 *= PRIME1; p = p.offset(1);
         }
+
+        self.v1 = v1;
+        self.v2 = v2;
+        self.v3 = v3;
+        self.v4 = v4;
 
         if rem > 0 {
             let dst: *mut u8 = &self.memory as *mut u8;
