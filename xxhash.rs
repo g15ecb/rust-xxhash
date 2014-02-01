@@ -73,12 +73,12 @@ pub struct XXHState {
     // field names match the C implementation
     priv memory: [u8, ..16],
     priv total_len: u64,
-    priv seed: u32,
     priv v1: u32,
     priv v2: u32,
     priv v3: u32,
     priv v4: u32,
     priv memsize: int,
+    priv seed: u32,
 }
 
 impl XXHState {
@@ -104,7 +104,7 @@ impl XXHState {
     }
 
     unsafe fn update_impl(&mut self, input: &[u8]) {
-        let mut len: uint = input.len();
+        let mut len: int = input.len() as int;
         let mut data: *u8 = input.repr().data;
 
         self.total_len += len as u64;
@@ -112,7 +112,7 @@ impl XXHState {
         if self.memsize + (len as int) < 16 {
             // not enough data for one 16-byte chunk, so just fill the buffer and return.
             let dst: *mut u8 = (&self.memory as *mut u8).offset(self.memsize);
-            intrinsics::copy_nonoverlapping_memory(dst, data, len);
+            intrinsics::copy_nonoverlapping_memory(dst, data, len as uint);
             self.memsize += len as int;
             return;
         }
@@ -122,8 +122,8 @@ impl XXHState {
             // fill the buffer and eat it
             // XXH_memcpy(state->memory + state->memsize, input, 16-state->memsize);
             let dst: *mut u8 = (&self.memory as *mut u8).offset(self.memsize);
-            let bump: uint = 16 - self.memsize as uint;
-            intrinsics::copy_nonoverlapping_memory(dst, data, bump);
+            let bump: int = 16 - self.memsize as int;
+            intrinsics::copy_nonoverlapping_memory(dst, data, bump as uint);
 
             let mut p: *u32 = cast::transmute(&self.memory);
 
@@ -150,7 +150,7 @@ impl XXHState {
 
         let mut p: *u32 = cast::transmute(data);
         let chunks = len >> 4;
-        let rem = len & 15;
+        let rem: int = len & 15;
 
         let mut v1: u32 = self.v1;
         let mut v2: u32 = self.v2;
@@ -171,7 +171,7 @@ impl XXHState {
 
         if rem > 0 {
             let dst: *mut u8 = &self.memory as *mut u8;
-            intrinsics::copy_nonoverlapping_memory(dst, data, rem);
+            intrinsics::copy_nonoverlapping_memory(dst, data, rem as uint);
             self.memsize = rem as int;
         }
     }
