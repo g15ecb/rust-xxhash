@@ -1,5 +1,7 @@
-#[crate_id="rust-hash#0.0"];
+#[crate_id="rust-xxhash#0.0"];
 #[crate_type="lib"];
+
+#[deny(warnings)];
 
 #[cfg(test)]
 extern mod extra;
@@ -33,6 +35,7 @@ mod siphash {
 
     #[inline(always)]
     fn bench_chunks(bench: &mut BenchHarness, chunk_size: uint) {
+        #[allow(unused_must_use)];
         use std::hash;
         use std::hash::{Streaming};
         bench_base( bench, |v| {
@@ -46,10 +49,37 @@ mod siphash {
 
     #[bench]
     fn oneshot(bench: &mut BenchHarness) {
-        use std::hash::{Hash};
+        #[allow(unused_must_use)];
+        use std::hash;
+        use std::hash::{Streaming};
+        bench_base( bench, |v| {
+            let mut sip: hash::State = hash::default_state();
+            sip.write(v);
+            sip.result_u64();
+        });
+    }
+
+    #[bench]
+    fn iterbytes(bench: &mut BenchHarness) {
         bench_base( bench, |v| {
             v.hash();
         });
+    }
+
+
+    #[bench]
+    fn chunks_01(bench: &mut BenchHarness) {
+        bench_chunks(bench, 1);
+    }
+
+    #[bench]
+    fn chunks_02(bench: &mut BenchHarness) {
+        bench_chunks(bench, 2);
+    }
+
+    #[bench]
+    fn chunks_04(bench: &mut BenchHarness) {
+        bench_chunks(bench, 4);
     }
 
     #[bench]

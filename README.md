@@ -8,7 +8,7 @@ You can choose the C compiler by setting `--cfg gcc` or `--cfg clang` in build.s
 
 ### Test:
 
-    $ ./rust-hash --test --bench
+    $ ./rust-xxhash --test --bench
 
     running 25 tests
     test xxhash::c::test_chunks ... ok
@@ -16,7 +16,7 @@ You can choose the C compiler by setting `--cfg gcc` or `--cfg clang` in build.s
     test xxhash::rust::test ... ok
     test xxhash::rust::test_chunks ... ok
     <snip benchmarks>
-    
+
     test result: ok. 4 passed; 0 failed; 0 ignored; 21 measured
 
 ### Use:

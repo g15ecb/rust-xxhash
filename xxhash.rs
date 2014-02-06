@@ -322,7 +322,7 @@ mod clang {
 
     #[inline(always)]
     fn bench_chunks_base(bench: &mut BenchHarness, chunk_size: i32) {
-        let BUFSIZE: c_int = 256*1024;
+        let BUFSIZE: c_int = 64*1024;
         let buf: *mut c_void = unsafe { libc::malloc(BUFSIZE as size_t) };
 
         bench.iter(|| unsafe {
@@ -340,6 +340,21 @@ mod clang {
     }
 
     #[bench]
+    fn chunks_01(bench: &mut BenchHarness) {
+        bench_chunks_base(bench, 1);
+    }
+
+    #[bench]
+    fn chunks_02(bench: &mut BenchHarness) {
+        bench_chunks_base(bench, 2);
+    }
+
+    #[bench]
+    fn chunks_04(bench: &mut BenchHarness) {
+        bench_chunks_base(bench, 4);
+    }
+
+    #[bench]
     fn chunks_07(bench: &mut BenchHarness) {
         bench_chunks_base(bench, 7);
     }
@@ -347,6 +362,7 @@ mod clang {
     fn chunks_08(bench: &mut BenchHarness) {
         bench_chunks_base(bench, 8);
     }
+
     #[bench]
     fn chunks_15(bench: &mut BenchHarness) {
         bench_chunks_base(bench, 15);
@@ -363,6 +379,7 @@ mod clang {
     fn chunks_64(bench: &mut BenchHarness) {
         bench_chunks_base(bench, 64);
     }
+
 }
 
 #[cfg(test,gcc)]
@@ -464,7 +481,7 @@ mod gcc {
 
     #[inline(always)]
     fn bench_chunks_base(bench: &mut BenchHarness, chunk_size: i32) {
-        let BUFSIZE: c_int = 256*1024;
+        let BUFSIZE: c_int = 64*1024;
         let buf: *mut c_void = unsafe { libc::malloc(BUFSIZE as size_t) };
 
         bench.iter(|| unsafe {
@@ -479,6 +496,21 @@ mod gcc {
 
         bench.bytes = BUFSIZE as u64;
         unsafe { libc::free(buf as *mut c_void); }
+    }
+
+    #[bench]
+    fn chunks_01(bench: &mut BenchHarness) {
+        bench_chunks(bench, 1);
+    }
+
+    #[bench]
+    fn chunks_02(bench: &mut BenchHarness) {
+        bench_chunks(bench, 2);
+    }
+
+    #[bench]
+    fn chunks_04(bench: &mut BenchHarness) {
+        bench_chunks(bench, 4);
     }
 
     #[bench]
@@ -599,10 +631,38 @@ mod rust {
     }
 
     #[bench]
+    fn iterbytes(bench: &mut BenchHarness) {
+        use std::to_bytes::{IterBytes};
+        bench_base( bench, |v| {
+            let mut xxh: XXHState = XXHState::new(0);
+            v.iter_bytes(true, |bytes| {
+                xxh.update(bytes);
+                true
+            });
+            xxh.digest();
+        });
+    }
+
+    #[bench]
     fn oneshot(bench: &mut BenchHarness) {
         bench_base( bench, |v| {
             xxh32(v, 0);
         });
+    }
+
+    #[bench]
+    fn chunks_01(bench: &mut BenchHarness) {
+        bench_chunks(bench, 1);
+    }
+
+    #[bench]
+    fn chunks_02(bench: &mut BenchHarness) {
+        bench_chunks(bench, 2);
+    }
+
+    #[bench]
+    fn chunks_04(bench: &mut BenchHarness) {
+        bench_chunks(bench, 4);
     }
 
     #[bench]
