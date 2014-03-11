@@ -2,9 +2,10 @@
 #[crate_type="lib"];
 
 #[deny(warnings)];
+#[allow(non_camel_case_types, uppercase_variables)];
 
 #[cfg(test)]
-extern mod extra;
+extern crate test;
 
 pub use xxhash::{XXHState,xxh32};
 
@@ -13,102 +14,3 @@ pub use xxhash::{XXHState,xxh32};
 static little_endian_only_sorry :bool=false;
 
 pub mod xxhash;
-
-#[cfg(test)]
-mod siphash {
-    use extra::test::BenchHarness;
-
-    #[inline(always)]
-    fn bench_base(bench: &mut BenchHarness, f: |&[u8]| ) {
-        use std::vec;
-        use std::libc;
-        let BUFSIZE = 64*1024;
-
-        let buf: *mut libc::c_void = unsafe { libc::malloc(BUFSIZE as libc::size_t) };
-
-        let v: ~[u8] = unsafe { vec::raw::from_buf_raw(buf as *u8, BUFSIZE) };
-        bench.iter( || f(v) );
-        bench.bytes = BUFSIZE as u64;
-        unsafe { libc::free(buf as *mut libc::c_void); }
-
-    }
-
-    #[inline(always)]
-    fn bench_chunks(bench: &mut BenchHarness, chunk_size: uint) {
-        #[allow(unused_must_use)];
-        use std::hash;
-        use std::hash::{Streaming};
-        bench_base( bench, |v| {
-            let mut sip: hash::State = hash::default_state();
-            for chunk in v.chunks(chunk_size) {
-                sip.write(chunk);
-            }
-            sip.result_u64();
-        });
-    }
-
-    #[bench]
-    fn oneshot(bench: &mut BenchHarness) {
-        #[allow(unused_must_use)];
-        use std::hash;
-        use std::hash::{Streaming};
-        bench_base( bench, |v| {
-            let mut sip: hash::State = hash::default_state();
-            sip.write(v);
-            sip.result_u64();
-        });
-    }
-
-    #[bench]
-    fn iterbytes(bench: &mut BenchHarness) {
-        bench_base( bench, |v| {
-            v.hash();
-        });
-    }
-
-
-    #[bench]
-    fn chunks_01(bench: &mut BenchHarness) {
-        bench_chunks(bench, 1);
-    }
-
-    #[bench]
-    fn chunks_02(bench: &mut BenchHarness) {
-        bench_chunks(bench, 2);
-    }
-
-    #[bench]
-    fn chunks_04(bench: &mut BenchHarness) {
-        bench_chunks(bench, 4);
-    }
-
-    #[bench]
-    fn chunks_07(bench: &mut BenchHarness) {
-        bench_chunks(bench, 7);
-    }
-
-    #[bench]
-    fn chunks_08(bench: &mut BenchHarness) {
-        bench_chunks(bench, 8);
-    }
-
-    #[bench]
-    fn chunks_15(bench: &mut BenchHarness) {
-        bench_chunks(bench, 15);
-    }
-
-    #[bench]
-    fn chunks_16(bench: &mut BenchHarness) {
-        bench_chunks(bench, 16);
-    }
-
-    #[bench]
-    fn chunks_32(bench: &mut BenchHarness) {
-        bench_chunks(bench, 32);
-    }
-
-    #[bench]
-    fn chunks_64(bench: &mut BenchHarness) {
-        bench_chunks(bench, 64);
-    }
-}
