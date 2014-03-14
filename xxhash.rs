@@ -1,9 +1,11 @@
 use std::raw::{Repr};
 use std::cast;
 use std::intrinsics;
+use std::io::{IoResult, Writer};
+use std::default::{Default};
+use std::hash::{Hash, Hasher};
 
-#[inline(always)]
-fn rotl32(x: u32, b: u32) -> u32 {
+fn rotl32(x: u32, b: u32) -> u32 { #[inline(always)];
     ((x << b) | (x >> (32 - b)))
 }
 
@@ -13,8 +15,7 @@ static PRIME3: u32 = 3266489917;
 static PRIME4: u32 = 668265263;
 static PRIME5: u32 = 374761393;
 
-#[inline]
-pub fn xxh32(input: &[u8], seed: u32) -> u32 {
+pub fn xxh32(input: &[u8], seed: u32) -> u32 { #[inline];
     unsafe { xxh32_impl(input, seed) }
 }
 
@@ -69,7 +70,7 @@ unsafe fn xxh32_impl(input: &[u8], seed: u32) -> u32 {
     h32
 }
 
-pub struct XXHState {
+pub struct XXState {
     // field names match the C implementation
     priv memory: [u8, ..16],
     priv total_len: u64,
@@ -81,14 +82,15 @@ pub struct XXHState {
     priv seed: u32,
 }
 
-impl XXHState {
-    pub fn new(seed: u32) -> XXHState {
+impl XXState {
+    pub fn new(seed: u32) -> XXState { #[inline];
         // no need to write it twice
-        let mut xxh: XXHState = unsafe { intrinsics::uninit() };
+        let mut xxh: XXState = unsafe { intrinsics::uninit() };
         xxh.reset(seed);
         xxh
     }
-    pub fn reset(&mut self, seed: u32) {
+
+    pub fn reset(&mut self, seed: u32) { #[inline];
         self.seed = seed;
         self.v1 = seed + PRIME1 + PRIME2;
         self.v2 = seed + PRIME2;
@@ -98,12 +100,11 @@ impl XXHState {
         self.memsize = 0;
     }
 
-    #[inline]
-    pub fn update(&mut self, input: &[u8]) {
+    pub fn update(&mut self, input: &[u8]) { #[inline];
         unsafe { self.update_impl(input) }
     }
 
-    unsafe fn update_impl(&mut self, input: &[u8]) {
+    unsafe fn update_impl(&mut self, input: &[u8]) { #[inline];
         let mut len: int = input.len() as int;
         let mut data: *u8 = input.repr().data;
 
@@ -177,11 +178,11 @@ impl XXHState {
     }
 
     /// Can be called on intermediate states
-    pub fn digest(&self) -> u32 {
+    pub fn digest(&self) -> u32 { #[inline];
         unsafe { self.digest_impl() }
     }
 
-    unsafe fn digest_impl(&self) -> u32 {
+    unsafe fn digest_impl(&self) -> u32 { #[inline];
         let mut p: *u32 = cast::transmute(&self.memory);
 
         let mut h32: u32 = match self.total_len >= 16 {
@@ -220,11 +221,49 @@ impl XXHState {
 
 }
 
+impl Writer for XXState {
+    fn write(&mut self, input: &[u8]) -> IoResult<()> { #[inline];
+        unsafe { self.update_impl(input); }
+        Ok(())
+    }
+}
 
+impl Default for XXState {
+    fn default() -> XXState { #[inline];
+        XXState::new(0)
+    }
+}
 
+impl Clone for XXState {
+    fn clone(&self) -> XXState { #[inline];
+        *self
+    }
+}
 
-#[cfg(test,clang)]
-mod clang {
+pub struct XXHasher {
+    priv seed: u32
+}
+
+impl XXHasher {
+    pub fn new() -> XXHasher { #[inline];
+        XXHasher::new_with_seed(0)
+    }
+
+    pub fn new_with_seed(seed: u32) -> XXHasher { #[inline];
+        XXHasher { seed: seed }
+    }
+}
+
+impl Hasher<XXState> for XXHasher {
+    fn hash<T: Hash<XXState>>(&self, value: &T) -> u64 {
+        let mut state = XXState::new(self.seed);
+        value.hash(&mut state);
+        state.digest() as u64
+    }
+}
+
+#[cfg(test)]
+mod c {
     use std::libc::{c_int,c_uint,c_void,size_t};
     use std::libc;
     use test::test::BenchHarness;
@@ -235,7 +274,17 @@ mod clang {
     #[repr(C)]
     enum XXH_Endianess { XXH_BigEndian=0, XXH_LittleEndian=1 }
 
+    #[cfg(clang)]
     #[link(name="xxhash-clang")]
+    extern {
+        fn XXH32(input: *c_void, len:c_int, seed: u32)-> c_uint;
+        fn XXH32_init(seed: u32) -> *mut c_void;
+        fn XXH32_update(state: *mut c_void, input: *c_void, len: c_int, endian: XXH_Endianess) -> bool;
+        fn XXH32_digest(state: *mut c_void) -> u32;
+    }
+
+    #[cfg(gcc)]
+    #[link(name="xxhash-gcc")]
     extern {
         fn XXH32(input: *c_void, len:c_int, seed: u32)-> c_uint;
         fn XXH32_init(seed: u32) -> *mut c_void;
@@ -383,43 +432,28 @@ mod clang {
 
 }
 
-#[cfg(test,gcc)]
-mod gcc {
-    use std::libc::{c_int,c_uint,c_void,size_t};
-    use std::libc;
-    use extra::test::BenchHarness;
+#[cfg(test)]
+mod rust {
+    use super::{xxh32,XXState};
+    use test::test::BenchHarness;
 
-    static PRIME : c_uint = 2654435761u32;
-
-    #[repr(C)]
-    enum XXH_endianess { XXH_bigEndian=0, XXH_littleEndian=1 }
-
-    #[link(name="xxhash-gcc")]
-    extern {
-        fn XXH32(input: *c_void, len:c_int, seed: u32)-> c_uint;
-        fn XXH32_init(seed: u32) -> *mut c_void;
-        fn XXH32_update(state: *mut c_void, input: *c_void, len: c_int, endian: XXH_endianess) -> bool;
-        fn XXH32_digest(state: *mut c_void) -> u32;
-    }
-
-    #[test] // the xxhash benchmark's sanity test
+    #[test]
     fn test() {
-        let BUFSIZE: c_int = 101;
-        let buf: *mut u8 = unsafe { libc::malloc(BUFSIZE as size_t) as *mut u8 };
+        use std::vec;
+        let BUFSIZE: uint = 101;
+        let PRIME: u32 = 2654435761;
 
         let mut random: u32 = PRIME;
+        let mut buf: ~[u8] = vec::with_capacity(BUFSIZE);
 
-        for i in range(0, BUFSIZE) {
-            unsafe {
-                let ptr: *mut u8 = buf.offset(i as int);
-                *ptr = (random >> 24) as u8;
-            }
+        for _ in range(0, BUFSIZE) {
+            buf.push((random >> 24) as u8);
             random *= random;
         }
 
-        let test = |len: c_int, seed: u32, expected: u32| {
-            let result = unsafe { XXH32(buf as *c_void, len as c_int, seed as c_uint) } as u32;
-            assert_eq!(expected, result);
+        let test = |size: uint, seed: u32, expected: u32| {
+            let result = xxh32(buf.slice(0, size), seed);
+            assert_eq!(result, expected);
         };
 
         test(1,                0,      0xB85CBEE5);
@@ -428,37 +462,31 @@ mod gcc {
         test(14,               PRIME,  0x4481951D);
         test(BUFSIZE,          0,      0x1F1AA412);
         test(BUFSIZE,          PRIME,  0x498EC8E2);
-
-        unsafe { libc::free(buf as *mut c_void); }
     }
 
     #[test]
     fn test_chunks() {
-        let BUFSIZE: c_int = 101;
-        let buf: *mut u8 = unsafe { libc::malloc(BUFSIZE as size_t) as *mut u8 };
+        use std::vec;
+        let BUFSIZE: uint = 101;
+        let PRIME: u32 = 2654435761;
 
         let mut random: u32 = PRIME;
+        let mut buf: ~[u8] = vec::with_capacity(BUFSIZE);
 
-        for i in range(0, BUFSIZE) {
-            unsafe {
-                let ptr: *mut u8 = buf.offset(i as int);
-                *ptr = (random >> 24) as u8;
-            }
+        for _ in range(0, BUFSIZE) {
+            buf.push((random >> 24) as u8);
             random *= random;
         }
 
-        let test = |size: c_int, seed: u32, expected: u32| {
-            unsafe {
-                let state: *mut c_void = XXH32_init(seed);
-                let (chunks, rem) = size.div_rem(&15);
-                for chunk in range(0, chunks) {
-                    XXH32_update(state, buf.offset(chunk as int *15) as *c_void, 15 as c_int, XXH_littleEndian);
-                }
-                XXH32_update(state, buf.offset(chunks as int * 15) as *c_void, rem, XXH_littleEndian);
-                let result = XXH32_digest(state);
-
-                assert_eq!(result, expected);
+        let test = |size: uint, seed: u32, expected: u32| {
+            let v = buf.slice(0, size);
+            let mut xxh: XXState = XXState::new(seed);
+            for chunk in v.chunks(15) {
+                xxh.update(chunk);
             }
+
+            let result = xxh.digest();
+            assert_eq!(result, expected);
         };
 
         test(1,                0,      0xB85CBEE5);
@@ -469,34 +497,50 @@ mod gcc {
         test(BUFSIZE,          PRIME,  0x498EC8E2);
     }
 
-    #[bench]
-    fn oneshot(bench: &mut BenchHarness) {
-        let BUFSIZE: c_int = 64*1024;
-        let buf: *mut c_void = unsafe { libc::malloc(BUFSIZE as size_t) };
+    #[inline(always)]
+    fn bench_base(bench: &mut BenchHarness, f: |&[u8]| ) {
+        use std::vec;
+        use std::libc;
+        let BUFSIZE = 64*1024;
 
-        bench.iter(|| unsafe { XXH32(buf as *c_void, BUFSIZE, 0); });
+        let buf: *mut libc::c_void = unsafe { libc::malloc(BUFSIZE as libc::size_t) };
 
+        let v: ~[u8] = unsafe { vec::raw::from_buf_raw(buf as *u8, BUFSIZE) };
+        bench.iter( || f(v) );
         bench.bytes = BUFSIZE as u64;
-        unsafe { libc::free(buf as *mut c_void); }
+        unsafe { libc::free(buf as *mut libc::c_void); }
+
     }
 
     #[inline(always)]
-    fn bench_chunks_base(bench: &mut BenchHarness, chunk_size: i32) {
-        let BUFSIZE: c_int = 64*1024;
-        let buf: *mut c_void = unsafe { libc::malloc(BUFSIZE as size_t) };
-
-        bench.iter(|| unsafe {
-            let state: *mut c_void = XXH32_init(0);
-            let (chunks, rem) = BUFSIZE.div_rem(&chunk_size);
-            for chunk in range(0, chunks) {
-                XXH32_update(state, buf.offset(chunk as int * chunk_size as int) as *c_void, chunk_size as c_int, XXH_littleEndian);
+    fn bench_chunks(bench: &mut BenchHarness, chunk_size: uint) {
+        bench_base( bench, |v| {
+            let mut xxh: XXState = XXState::new(0);
+            for chunk in v.chunks(chunk_size) {
+                xxh.update(chunk);
             }
-            XXH32_update(state, buf.offset(chunks as int * chunk_size as int) as *c_void, rem, XXH_littleEndian);
-            XXH32_digest(state);
+            xxh.digest();
         });
+    }
 
-        bench.bytes = BUFSIZE as u64;
-        unsafe { libc::free(buf as *mut c_void); }
+//     #[bench]
+//     fn iterbytes(bench: &mut BenchHarness) {
+//         use std::to_bytes::{IterBytes};
+//         bench_base( bench, |v| {
+//             let mut xxh: XXState = XXState::new(0);
+//             v.iter_bytes(true, |bytes| {
+//                 xxh.update(bytes);
+//                 true
+//             });
+//             xxh.digest();
+//         });
+//     }
+
+    #[bench]
+    fn oneshot(bench: &mut BenchHarness) {
+        bench_base( bench, |v| {
+            xxh32(v, 0);
+        });
     }
 
     #[bench]
@@ -516,183 +560,31 @@ mod gcc {
 
     #[bench]
     fn chunks_07(bench: &mut BenchHarness) {
-        bench_chunks_base(bench, 7);
+        bench_chunks(bench, 7);
     }
+
     #[bench]
     fn chunks_08(bench: &mut BenchHarness) {
-        bench_chunks_base(bench, 8);
+        bench_chunks(bench, 8);
     }
+
     #[bench]
     fn chunks_15(bench: &mut BenchHarness) {
-        bench_chunks_base(bench, 15);
+        bench_chunks(bench, 15);
     }
+
     #[bench]
     fn chunks_16(bench: &mut BenchHarness) {
-        bench_chunks_base(bench, 16);
+        bench_chunks(bench, 16);
     }
+
     #[bench]
     fn chunks_32(bench: &mut BenchHarness) {
-        bench_chunks_base(bench, 32);
+        bench_chunks(bench, 32);
     }
+
     #[bench]
     fn chunks_64(bench: &mut BenchHarness) {
-        bench_chunks_base(bench, 64);
+        bench_chunks(bench, 64);
     }
 }
-
-// #[cfg(test)]
-// mod rust {
-//     use super::{xxh32,XXHState};
-//     use test::test::BenchHarness;
-//
-//     #[test]
-//     fn test() {
-//         use std::vec;
-//         let BUFSIZE: uint = 101;
-//         let PRIME: u32 = 2654435761;
-//
-//         let mut random: u32 = PRIME;
-//         let mut buf: ~[u8] = vec::with_capacity(BUFSIZE);
-//
-//         for _ in range(0, BUFSIZE) {
-//             buf.push((random >> 24) as u8);
-//             random *= random;
-//         }
-//
-//         let test = |size: uint, seed: u32, expected: u32| {
-//             let result = xxh32(buf.slice(0, size), seed);
-//             assert_eq!(result, expected);
-//         };
-//
-//         test(1,                0,      0xB85CBEE5);
-//         test(1,                PRIME,  0xD5845D64);
-//         test(14,               0,      0xE5AA0AB4);
-//         test(14,               PRIME,  0x4481951D);
-//         test(BUFSIZE,          0,      0x1F1AA412);
-//         test(BUFSIZE,          PRIME,  0x498EC8E2);
-//     }
-//
-//     #[test]
-//     fn test_chunks() {
-//         use std::vec;
-//         let BUFSIZE: uint = 101;
-//         let PRIME: u32 = 2654435761;
-//
-//         let mut random: u32 = PRIME;
-//         let mut buf: ~[u8] = vec::with_capacity(BUFSIZE);
-//
-//         for _ in range(0, BUFSIZE) {
-//             buf.push((random >> 24) as u8);
-//             random *= random;
-//         }
-//
-//         let test = |size: uint, seed: u32, expected: u32| {
-//             let v = buf.slice(0, size);
-//             let mut xxh: XXHState = XXHState::new(seed);
-//             for chunk in v.chunks(15) {
-//                 xxh.update(chunk);
-//             }
-//
-//             let result = xxh.digest();
-//             assert_eq!(result, expected);
-//         };
-//
-//         test(1,                0,      0xB85CBEE5);
-//         test(1,                PRIME,  0xD5845D64);
-//         test(14,               0,      0xE5AA0AB4);
-//         test(14,               PRIME,  0x4481951D);
-//         test(BUFSIZE,          0,      0x1F1AA412);
-//         test(BUFSIZE,          PRIME,  0x498EC8E2);
-//     }
-//
-//     #[inline(always)]
-//     fn bench_base(bench: &mut BenchHarness, f: |&[u8]| ) {
-//         use std::vec;
-//         use std::libc;
-//         let BUFSIZE = 64*1024;
-//
-//         let buf: *mut libc::c_void = unsafe { libc::malloc(BUFSIZE as libc::size_t) };
-//
-//         let v: ~[u8] = unsafe { vec::raw::from_buf_raw(buf as *u8, BUFSIZE) };
-//         bench.iter( || f(v) );
-//         bench.bytes = BUFSIZE as u64;
-//         unsafe { libc::free(buf as *mut libc::c_void); }
-//
-//     }
-//
-//     #[inline(always)]
-//     fn bench_chunks(bench: &mut BenchHarness, chunk_size: uint) {
-//         bench_base( bench, |v| {
-//             let mut xxh: XXHState = XXHState::new(0);
-//             for chunk in v.chunks(chunk_size) {
-//                 xxh.update(chunk);
-//             }
-//             xxh.digest();
-//         });
-//     }
-
-//     #[bench]
-//     fn iterbytes(bench: &mut BenchHarness) {
-//         use std::to_bytes::{IterBytes};
-//         bench_base( bench, |v| {
-//             let mut xxh: XXHState = XXHState::new(0);
-//             v.iter_bytes(true, |bytes| {
-//                 xxh.update(bytes);
-//                 true
-//             });
-//             xxh.digest();
-//         });
-//     }
-
-//     #[bench]
-//     fn oneshot(bench: &mut BenchHarness) {
-//         bench_base( bench, |v| {
-//             xxh32(v, 0);
-//         });
-//     }
-//
-//     #[bench]
-//     fn chunks_01(bench: &mut BenchHarness) {
-//         bench_chunks(bench, 1);
-//     }
-//
-//     #[bench]
-//     fn chunks_02(bench: &mut BenchHarness) {
-//         bench_chunks(bench, 2);
-//     }
-//
-//     #[bench]
-//     fn chunks_04(bench: &mut BenchHarness) {
-//         bench_chunks(bench, 4);
-//     }
-//
-//     #[bench]
-//     fn chunks_07(bench: &mut BenchHarness) {
-//         bench_chunks(bench, 7);
-//     }
-//
-//     #[bench]
-//     fn chunks_08(bench: &mut BenchHarness) {
-//         bench_chunks(bench, 8);
-//     }
-//
-//     #[bench]
-//     fn chunks_15(bench: &mut BenchHarness) {
-//         bench_chunks(bench, 15);
-//     }
-//
-//     #[bench]
-//     fn chunks_16(bench: &mut BenchHarness) {
-//         bench_chunks(bench, 16);
-//     }
-//
-//     #[bench]
-//     fn chunks_32(bench: &mut BenchHarness) {
-//         bench_chunks(bench, 32);
-//     }
-//
-//     #[bench]
-//     fn chunks_64(bench: &mut BenchHarness) {
-//         bench_chunks(bench, 64);
-//     }
-// }

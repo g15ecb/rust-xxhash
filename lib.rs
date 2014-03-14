@@ -4,10 +4,12 @@
 #[deny(warnings)];
 #[allow(non_camel_case_types, uppercase_variables)];
 
+#[feature(default_type_params)];
+
 #[cfg(test)]
 extern crate test;
 
-pub use xxhash::{XXHState,xxh32};
+pub use xxhash::{XXState,XXHasher,xxh32};
 
 #[cfg(target_endian = "big")]
 #[static_assert]
