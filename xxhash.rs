@@ -262,6 +262,19 @@ impl Hasher<XXState> for XXHasher {
     }
 }
 
+pub fn hash<T: Hash<XXState>>(value: &T) -> u32 {
+    let mut state = XXState::new(0);
+    value.hash(&mut state);
+    state.digest()
+}
+
+pub fn hash_with_seed<T: Hash<XXState>>(seed: u32, value: &T) -> u32 {
+    let mut state = XXState::new(seed);
+    value.hash(&mut state);
+    state.digest()
+}
+
+
 #[cfg(test)]
 mod c {
     use std::libc::{c_int,c_uint,c_void,size_t};
